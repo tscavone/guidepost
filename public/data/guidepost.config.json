@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "prefixes": [
+    "Find me a",
+    "Look up a",
+    "Get availability for",
+    "I need a",
+    "Search for a"
+  ],
+  "provider_attributes": [
+    {
+      "id": "location",
+      "name": "Location",
+      "value_type": "object"
+    },
+    {
+      "id": "specialties",
+      "name": "Specialties",
+      "value_type": "string[]"
+    },
+    {
+      "id": "accepting_new_patients",
+      "name": "Accepting New Patients",
+      "value_type": "boolean"
+    },
+    {
+      "id": "languages",
+      "name": "Languages",
+      "value_type": "string[]"
+    },
+    {
+      "id": "telehealth_available",
+      "name": "Telehealth Available",
+      "value_type": "boolean"
+    },
+    {
+      "id": "age_groups",
+      "name": "Age Groups",
+      "value_type": "string[]"
+    },
+    {
+      "id": "insurance_accepted",
+      "name": "Insurance Accepted",
+      "value_type": "string[]"
+    },
+    {
+      "id": "hospital_affiliations",
+      "name": "Hospital Affiliations",
+      "value_type": "string[]"
+    },
+    {
+      "id": "next_available_days",
+      "name": "Next Available (days)",
+      "value_type": "number"
+    },
+    {
+      "id": "board_certified",
+      "name": "Board Certified",
+      "value_type": "boolean"
+    },
+    {
+      "id": "years_in_practice",
+      "name": "Years in Practice",
+      "value_type": "number"
+    },
+    {
+      "id": "license_state",
+      "name": "License State",
+      "value_type": "string"
+    }
+  ]
+}
+
