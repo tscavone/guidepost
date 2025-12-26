@@ -11,7 +11,7 @@ export const geminiAdapter: Adapter = async ({ prompt, model }): Promise<Adapter
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -75,7 +75,7 @@ export const geminiAdapter: Adapter = async ({ prompt, model }): Promise<Adapter
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Gemini API request timed out after 15 seconds');
+      throw new Error('Gemini API request timed out after 60 seconds');
     }
     throw error;
   }

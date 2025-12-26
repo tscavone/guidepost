@@ -38,7 +38,7 @@ import RunInspectorDrawer from "../components/RunInspectorDrawer";
 
 const AGENTS = [
   { value: "openai", label: "OpenAI", defaultModel: "gpt-4.1-mini" },
-  { value: "xai", label: "xAI", defaultModel: "grok-2" },
+  { value: "xai", label: "xAI", defaultModel: "grok-4" },
   { value: "gemini", label: "Gemini", defaultModel: "gemini-1.5-pro" },
 ];
 
@@ -46,6 +46,10 @@ const API_BASE_URL = "http://localhost:8787";
 
 interface AnalyzePageProps {
   selectedProviderId: string | null;
+}
+
+interface AgentRunWithHighlight extends AgentRun {
+  _isHighlighted?: boolean;
 }
 
 export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
@@ -64,7 +68,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
   );
   const [agentModels, setAgentModels] = useState<Record<string, string>>({
     openai: "gpt-4.1-mini",
-    xai: "grok-2",
+    xai: "grok-4",
     gemini: "gemini-1.5-pro",
   });
   const [runCount, setRunCount] = useState<number>(1);
@@ -139,14 +143,8 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
         model: agentModels[agent.value] || agent.defaultModel,
       }));
 
-      // Calculate total possible runs and limit to runCount
-      const totalPossibleRuns = queries.length * agentSpecs.length;
-      const limitedRunCount = Math.min(runCount, totalPossibleRuns);
-
-      // Calculate how many queries we need to achieve the desired run count
-      // Each query runs with all selected agents, so we need ceil(runCount / agentCount) queries
-      const queriesNeeded = Math.ceil(limitedRunCount / agentSpecs.length);
-      const queriesToRun = queries.slice(0, queriesNeeded);
+      // Take the first N queries (where N = runCount) and run them on all selected agents
+      const queriesToRun = queries.slice(0, runCount);
 
       const response = await fetch(`${API_BASE_URL}/api/run-batch`, {
         method: "POST",
@@ -168,10 +166,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
 
       const allNewRuns: AgentRun[] = await response.json();
 
-      // Limit the returned runs to the specified count
-      const limitedRuns = allNewRuns.slice(0, limitedRunCount);
-
-      const allRuns = [...runs, ...limitedRuns];
+      const allRuns = [...runs, ...allNewRuns];
       setRuns(allRuns);
       saveRuns(allRuns);
     } catch (err) {
@@ -224,7 +219,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
 
   // Add highlighted property to filtered runs for easier access
   const filteredRunsWithHighlight = useMemo(() => {
-    const result = filteredRuns.map((run) => ({
+    const result: AgentRunWithHighlight[] = filteredRuns.map((run) => ({
       ...run,
       _isHighlighted: highlightedRunIds.has(run.run_id),
     }));
@@ -232,7 +227,9 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
     if (selectedProviderId) {
       const highlighted = result.filter((r) => r._isHighlighted);
       if (highlighted.length > 0) {
-        console.log(`[AnalyzePage] Highlighting ${highlighted.length} rows for provider ${selectedProviderId}`);
+        console.log(
+          `[AnalyzePage] Highlighting ${highlighted.length} rows for provider ${selectedProviderId}`
+        );
       }
     }
     return result;
@@ -402,7 +399,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
                 Run Agents
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Run selected agents on queries. Specify the number of runs to
+                Run selected agents on queries. Specify the number of queries to
                 execute. API keys must be configured in the server.
               </Typography>
 
@@ -459,13 +456,13 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
                   mb: 2,
                   display: "flex",
                   gap: 2,
-                  alignItems: "center",
+                  alignItems: "flex-start",
                   flexWrap: "wrap",
                 }}
               >
                 <TextField
                   type="number"
-                  label="Run Count"
+                  label="Query Count"
                   value={runCount}
                   onChange={(e) =>
                     setRunCount(Math.max(1, parseInt(e.target.value) || 1))
@@ -480,13 +477,14 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
                         } runs (${queries.length} queries × ${
                           AGENTS.filter((a) => selectedAgents[a.value]).length
                         } agents)`
-                      : "Enter number of runs to execute"
+                      : "Enter number of queries to execute"
                   }
                 />
                 <Button
                   variant="contained"
                   onClick={handleRunAgents}
                   disabled={running || queries.length === 0}
+                  sx={{ mt: 0.5 }}
                 >
                   {running ? "Running..." : "Go"}
                 </Button>
@@ -501,7 +499,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      Run Count by Agent
+                      Query Count by Agent
                     </Typography>
                     <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={chartData}>
@@ -541,7 +539,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
                     onClick={() => {
                       if (
                         window.confirm(
-                          "Are you sure you want to clear all runs? This action cannot be undone."
+                          "Are you sure you want to clear all queries? This action cannot be undone."
                         )
                       ) {
                         clearRuns();
@@ -551,7 +549,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
                       }
                     }}
                   >
-                    Clear All Runs
+                    Clear All Queries
                   </Button>
                 )}
               </Box>
@@ -592,21 +590,24 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
               {filteredRuns.length === 0 ? (
                 <Alert severity="info">
                   {runs.length === 0
-                    ? 'No runs yet. Click "Go" to run agents on queries.'
-                    : "No runs match the current filters."}
+                    ? 'No queries yet. Click "Go" to run agents on queries.'
+                    : "No queries match the current filters."}
                 </Alert>
               ) : (
                 <Box sx={{ height: 600, width: "100%" }}>
                   <DataGrid
-                    key={`runs-${selectedProviderId || 'none'}-${highlightedRunIds.size}`}
+                    key={`runs-${selectedProviderId || "none"}-${
+                      highlightedRunIds.size
+                    }`}
                     rows={filteredRunsWithHighlight}
                     columns={columns}
                     getRowId={(row) => row.run_id}
                     getRowClassName={(params) => {
-                      if (params.row._isHighlighted) {
-                        return 'highlighted-row';
+                      const row = params.row as AgentRunWithHighlight;
+                      if (row._isHighlighted) {
+                        return "highlighted-row";
                       }
-                      return '';
+                      return "";
                     }}
                     pageSizeOptions={[10, 25, 50, 100]}
                     initialState={{
@@ -619,17 +620,17 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
                     }}
                     sx={{
                       cursor: "pointer",
-                      '& .MuiDataGrid-row.highlighted-row': {
-                        backgroundColor: 'action.selected !important',
-                        '&:hover': {
-                          backgroundColor: 'action.selected !important',
+                      "& .MuiDataGrid-row.highlighted-row": {
+                        backgroundColor: "action.selected !important",
+                        "&:hover": {
+                          backgroundColor: "action.selected !important",
                         },
                       },
-                      '& .MuiDataGrid-row.highlighted-row.Mui-selected': {
-                        backgroundColor: 'action.selected !important',
+                      "& .MuiDataGrid-row.highlighted-row.Mui-selected": {
+                        backgroundColor: "action.selected !important",
                       },
-                      '& .MuiDataGrid-row.highlighted-row:hover': {
-                        backgroundColor: 'action.selected !important',
+                      "& .MuiDataGrid-row.highlighted-row:hover": {
+                        backgroundColor: "action.selected !important",
                       },
                     }}
                     onRowClick={(params) => {

@@ -12,7 +12,7 @@ export const openaiAdapter: Adapter = async ({ prompt, model }): Promise<Adapter
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
     const response = await fetch('https://api.openai.com/v1/responses', {
@@ -70,7 +70,7 @@ export const openaiAdapter: Adapter = async ({ prompt, model }): Promise<Adapter
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('OpenAI API request timed out after 15 seconds');
+      throw new Error('OpenAI API request timed out after 60 seconds');
     }
     throw error;
   }

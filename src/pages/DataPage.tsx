@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Box,
-  Typography,
-  Paper,
-  Alert,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Typography, Paper, Alert, CircularProgress } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { ProviderRecord } from "../lib/types";
 import { parseJsonl } from "../lib/jsonl";
@@ -15,7 +9,10 @@ interface DataPageProps {
   onProviderSelect: (providerId: string | null) => void;
 }
 
-export default function DataPage({ selectedProviderId, onProviderSelect }: DataPageProps) {
+export default function DataPage({
+  selectedProviderId,
+  onProviderSelect,
+}: DataPageProps) {
   const [providers, setProviders] = useState<ProviderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +95,10 @@ export default function DataPage({ selectedProviderId, onProviderSelect }: DataP
       width: 200,
       valueGetter: (params) => {
         if (!params.row) return "Not specified";
-        return params.row.attributes.insurance_accepted?.join(", ") || "Not specified";
+        return (
+          params.row.attributes.insurance_accepted?.join(", ") ||
+          "Not specified"
+        );
       },
     },
     {
@@ -107,7 +107,9 @@ export default function DataPage({ selectedProviderId, onProviderSelect }: DataP
       width: 180,
       valueGetter: (params) => {
         if (!params.row) return "No";
-        return params.row.attributes.accepting_new_patients === true ? "Yes" : "No";
+        return params.row.attributes.accepting_new_patients === true
+          ? "Yes"
+          : "No";
       },
     },
     {
@@ -116,7 +118,9 @@ export default function DataPage({ selectedProviderId, onProviderSelect }: DataP
       width: 120,
       valueGetter: (params) => {
         if (!params.row) return "No";
-        return params.row.attributes.telehealth_available === true ? "Yes" : "No";
+        return params.row.attributes.telehealth_available === true
+          ? "Yes"
+          : "No";
       },
     },
     {
@@ -153,18 +157,11 @@ export default function DataPage({ selectedProviderId, onProviderSelect }: DataP
     <Box>
       <Box sx={{ mb: 3 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Provider Data
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Source of truth provider data loaded from providers.jsonl. This data
-          is used to generate queries and evaluate agent responses. Read-only.
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Total providers: {providers.length}
+          Provider Data Total providers: {providers.length}
         </Typography>
       </Box>
 
-      <Paper sx={{ height: 600, width: "100%" }}>
+      <Paper sx={{ height: 600, width: "calc(100% + 30px)", ml: -15, mr: -15 }}>
         <DataGrid
           rows={providers}
           columns={columns}
@@ -194,10 +191,15 @@ export default function DataPage({ selectedProviderId, onProviderSelect }: DataP
                 backgroundColor: "action.selected",
               },
             },
+            "& .MuiDataGrid-virtualScroller": {
+              overflowX: "hidden !important",
+            },
+            "& .MuiDataGrid-main": {
+              overflowX: "hidden !important",
+            },
           }}
         />
       </Paper>
     </Box>
   );
 }
-
