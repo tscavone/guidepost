@@ -18,7 +18,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { GuidepostConfig, ProviderRecord, GeneratedQuery } from '../lib/types';
 import { parseJsonl } from '../lib/jsonl';
 import { generateQueries } from '../lib/queryGenerator';
-import { saveQueries, loadQueries } from '../lib/storage';
+import { saveQueries, loadQueries, clearQueries } from '../lib/storage';
 
 export default function QueryPage() {
   const [config, setConfig] = useState<GuidepostConfig | null>(null);
@@ -209,9 +209,37 @@ export default function QueryPage() {
       {/* Queries DataGrid */}
       <Card>
         <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Generated Queries ({queries.length})
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <Typography variant="h6">
+              Generated Queries ({queries.length})
+            </Typography>
+            {queries.length > 0 && (
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "Are you sure you want to clear all queries? This action cannot be undone."
+                    )
+                  ) {
+                    clearQueries();
+                    setQueries([]);
+                  }
+                }}
+              >
+                Clear All Queries
+              </Button>
+            )}
+          </Box>
           {queries.length === 0 ? (
             <Alert severity="info">No queries generated yet. Use the form above to generate queries.</Alert>
           ) : (

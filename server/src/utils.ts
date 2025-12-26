@@ -29,7 +29,10 @@ export function parseJsonFromText(text: string): any | null {
   }
 }
 
-export function parseAgentAnswer(text: string): {
+export function parseAgentAnswer(
+  text: string,
+  expectedProviderId: string | null = null
+): {
   answer: AgentAnswer;
   parseError: string | null;
 } {
@@ -51,10 +54,19 @@ export function parseAgentAnswer(text: string): {
   }
 
   // Validate and normalize the parsed JSON to match AgentAnswer schema
+  const agentProviderId =
+    typeof parsed.provider_id === "string" ? parsed.provider_id : null;
+
+  // Compute 'found' by comparing agent's provider_id with expected provider_id
+  // found = true if agent's provider_id matches the expected provider_id
+  const found =
+    expectedProviderId !== null &&
+    agentProviderId !== null &&
+    agentProviderId === expectedProviderId;
+
   const answer: AgentAnswer = {
-    provider_id:
-      typeof parsed.provider_id === "string" ? parsed.provider_id : null,
-    found: typeof parsed.found === "boolean" ? parsed.found : false,
+    provider_id: agentProviderId,
+    found,
     extracted_attributes:
       typeof parsed.extracted_attributes === "object" &&
       parsed.extracted_attributes !== null
@@ -83,7 +95,8 @@ export function createAgentRun(
   outputText: string,
   raw: any,
   error: string | null = null,
-  requestContext?: { query_text: string; candidate_provider_ids: string[] }
+  requestContext?: { query_text: string; candidate_provider_ids: string[] },
+  expectedProviderId: string | null = null
 ): AgentRun {
   const latencyMs = Date.now() - startTime;
 
@@ -91,7 +104,7 @@ export function createAgentRun(
   let parseError: string | null = null;
 
   if (!error) {
-    const parseResult = parseAgentAnswer(outputText);
+    const parseResult = parseAgentAnswer(outputText, expectedProviderId);
     agentAnswer = parseResult.answer;
     parseError = parseResult.parseError;
   }

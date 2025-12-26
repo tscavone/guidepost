@@ -237,8 +237,8 @@ export default function AnalyzePage() {
       headerName: "Name",
       width: 150,
       renderCell: (params) => {
-        const answer = params.row.agent_answer as AgentAnswer | null;
-        return getProviderName(answer?.provider_id || null);
+        const query = queries.find((q) => q.query_id === params.row.query_id);
+        return getProviderName(query?.provider_id || null);
       },
     },
     {

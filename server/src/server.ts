@@ -40,6 +40,7 @@ app.post("/api/run", async (req, res) => {
   try {
     const body: RunRequest = req.body;
     const { query_id, query_text, agents } = body;
+    const queryProviderId = body.providers?.[0]?.provider_id;
 
     if (!query_id || !query_text || !agents || !Array.isArray(agents)) {
       return res.status(400).json({ error: "Invalid request body" });
@@ -59,7 +60,9 @@ app.post("/api/run", async (req, res) => {
             startTime,
             "",
             null,
-            `API key not configured for ${agentSpec.agent}`
+            `API key not configured for ${agentSpec.agent}`,
+            undefined,
+            queryProviderId || null
           )
         );
         continue;
@@ -69,7 +72,6 @@ app.post("/api/run", async (req, res) => {
         const adapter = getAdapter(agentSpec.agent);
 
         // Get provider slice for this query
-        const queryProviderId = body.providers?.[0]?.provider_id;
         const providerSlice = getProviderSlice(queryProviderId, allProviders);
         const formattedProviders = providerSlice.map(formatProviderForPrompt);
         const candidateProviderIds = providerSlice.map((p) => p.provider_id);
@@ -119,7 +121,8 @@ Return JSON only, no other text.`;
             {
               query_text: query_text,
               candidate_provider_ids: candidateProviderIds,
-            }
+            },
+            queryProviderId || null
           )
         );
       } catch (error) {
@@ -131,7 +134,9 @@ Return JSON only, no other text.`;
             startTime,
             "",
             null,
-            error instanceof Error ? error.message : "Unknown error"
+            error instanceof Error ? error.message : "Unknown error",
+            undefined,
+            queryProviderId || null
           )
         );
       }
@@ -173,7 +178,9 @@ app.post("/api/run-batch", async (req, res) => {
               startTime,
               "",
               null,
-              `API key not configured for ${agentSpec.agent}`
+              `API key not configured for ${agentSpec.agent}`,
+              undefined,
+              query.provider_id || null
             )
           );
           continue;
@@ -235,7 +242,8 @@ Return JSON only, no other text.`;
               {
                 query_text: query.query_text,
                 candidate_provider_ids: candidateProviderIds,
-              }
+              },
+              query.provider_id || null
             )
           );
         } catch (error) {
@@ -247,7 +255,9 @@ Return JSON only, no other text.`;
               startTime,
               "",
               null,
-              error instanceof Error ? error.message : "Unknown error"
+              error instanceof Error ? error.message : "Unknown error",
+              undefined,
+              query.provider_id || null
             )
           );
         }
