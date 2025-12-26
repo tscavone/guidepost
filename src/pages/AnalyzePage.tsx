@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Card,
@@ -44,7 +44,11 @@ const AGENTS = [
 
 const API_BASE_URL = "http://localhost:8787";
 
-export default function AnalyzePage() {
+interface AnalyzePageProps {
+  selectedProviderId: string | null;
+}
+
+export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
   const [queries, setQueries] = useState<GeneratedQuery[]>([]);
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const [providers, setProviders] = useState<ProviderRecord[]>([]);
@@ -204,6 +208,35 @@ export default function AnalyzePage() {
     if (queryFilter && run.query_id !== queryFilter) return false;
     return true;
   });
+
+  // Create a map of run IDs that should be highlighted
+  const highlightedRunIds = useMemo(() => {
+    if (!selectedProviderId || queries.length === 0) return new Set<string>();
+    const matchingQueryIds = queries
+      .filter((q) => q.provider_id === selectedProviderId)
+      .map((q) => q.query_id);
+    return new Set(
+      runs
+        .filter((run) => matchingQueryIds.includes(run.query_id))
+        .map((run) => run.run_id)
+    );
+  }, [selectedProviderId, queries, runs]);
+
+  // Add highlighted property to filtered runs for easier access
+  const filteredRunsWithHighlight = useMemo(() => {
+    const result = filteredRuns.map((run) => ({
+      ...run,
+      _isHighlighted: highlightedRunIds.has(run.run_id),
+    }));
+    // Debug: log highlighted rows
+    if (selectedProviderId) {
+      const highlighted = result.filter((r) => r._isHighlighted);
+      if (highlighted.length > 0) {
+        console.log(`[AnalyzePage] Highlighting ${highlighted.length} rows for provider ${selectedProviderId}`);
+      }
+    }
+    return result;
+  }, [filteredRuns, highlightedRunIds, selectedProviderId]);
 
   const getProviderName = (providerId: string | null): string => {
     if (!providerId) return "-";
@@ -565,9 +598,16 @@ export default function AnalyzePage() {
               ) : (
                 <Box sx={{ height: 600, width: "100%" }}>
                   <DataGrid
-                    rows={filteredRuns}
+                    key={`runs-${selectedProviderId || 'none'}-${highlightedRunIds.size}`}
+                    rows={filteredRunsWithHighlight}
                     columns={columns}
                     getRowId={(row) => row.run_id}
+                    getRowClassName={(params) => {
+                      if (params.row._isHighlighted) {
+                        return 'highlighted-row';
+                      }
+                      return '';
+                    }}
                     pageSizeOptions={[10, 25, 50, 100]}
                     initialState={{
                       pagination: {
@@ -577,6 +617,21 @@ export default function AnalyzePage() {
                         sortModel: [{ field: "created_at", sort: "desc" }],
                       },
                     }}
+                    sx={{
+                      cursor: "pointer",
+                      '& .MuiDataGrid-row.highlighted-row': {
+                        backgroundColor: 'action.selected !important',
+                        '&:hover': {
+                          backgroundColor: 'action.selected !important',
+                        },
+                      },
+                      '& .MuiDataGrid-row.highlighted-row.Mui-selected': {
+                        backgroundColor: 'action.selected !important',
+                      },
+                      '& .MuiDataGrid-row.highlighted-row:hover': {
+                        backgroundColor: 'action.selected !important',
+                      },
+                    }}
                     onRowClick={(params) => {
                       setSelectedRun(params.row);
                       const query = queries.find(
@@ -584,7 +639,6 @@ export default function AnalyzePage() {
                       );
                       setSelectedQuery(query || null);
                     }}
-                    sx={{ cursor: "pointer" }}
                   />
                 </Box>
               )}

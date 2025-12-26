@@ -104,6 +104,9 @@ Instructions:
 
 Return JSON only, no other text.`;
 
+        console.log(`[${agentSpec.agent}] Query: ${query_text}`);
+        console.log(`[${agentSpec.agent}] Model: ${agentSpec.model}`);
+
         const result = await adapter({
           prompt,
           model: agentSpec.model,
@@ -224,6 +227,9 @@ Instructions:
 - Add any relevant notes in the notes field
 
 Return JSON only, no other text.`;
+
+          console.log(`[${agentSpec.agent}] Query: ${query.query_text}`);
+          console.log(`[${agentSpec.agent}] Model: ${agentSpec.model}`);
 
           const result = await adapter({
             prompt,

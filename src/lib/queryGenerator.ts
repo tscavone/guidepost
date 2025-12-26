@@ -13,12 +13,13 @@ export function generateQueries(
   const queries: GeneratedQuery[] = [];
   const prefixes = config.prefixes;
   
-  // Use a deterministic approach to select providers and prefixes
+  // Randomly select prefixes for each query at generation time
   for (let i = 0; i < count && i < providers.length * prefixes.length; i++) {
     const providerIndex = i % providers.length;
-    const prefixIndex = Math.floor(i / providers.length) % prefixes.length;
-    
     const provider = providers[providerIndex];
+    
+    // Randomly select a prefix from the list
+    const prefixIndex = Math.floor(Math.random() * prefixes.length);
     const prefix = prefixes[prefixIndex];
     
     const parts: string[] = [];
@@ -56,6 +57,7 @@ export function generateQueries(
     queries.push({
       query_id: queryId,
       query_text: queryText,
+      prefix: prefix,
       provider_id: provider.provider_id,
       city: provider.attributes.location?.city,
       state: provider.attributes.location?.state,

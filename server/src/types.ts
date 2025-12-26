@@ -35,6 +35,7 @@ export interface GuidepostConfig {
 export interface GeneratedQuery {
   query_id: string;
   query_text: string;
+  prefix?: string;
   provider_id: string;
   city?: string;
   state?: string;

@@ -20,7 +20,11 @@ import { parseJsonl } from '../lib/jsonl';
 import { generateQueries } from '../lib/queryGenerator';
 import { saveQueries, loadQueries, clearQueries } from '../lib/storage';
 
-export default function QueryPage() {
+interface QueryPageProps {
+  selectedProviderId: string | null;
+}
+
+export default function QueryPage({ selectedProviderId }: QueryPageProps) {
   const [config, setConfig] = useState<GuidepostConfig | null>(null);
   const [providers, setProviders] = useState<ProviderRecord[]>([]);
   const [queries, setQueries] = useState<GeneratedQuery[]>([]);
@@ -98,7 +102,26 @@ export default function QueryPage() {
 
   const columns: GridColDef<GeneratedQuery>[] = [
     { field: 'query_id', headerName: 'Query ID', width: 120 },
-    { field: 'query_text', headerName: 'Query Text', flex: 1, minWidth: 300 },
+    {
+      field: 'query_text',
+      headerName: 'Query Text',
+      flex: 1,
+      minWidth: 300,
+      renderCell: (params) => (
+        <Tooltip title={params.row.query_text} arrow>
+          <Box
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              width: '100%',
+            }}
+          >
+            {params.row.query_text}
+          </Box>
+        </Tooltip>
+      ),
+    },
     {
       field: 'provider_id',
       headerName: 'Name',
@@ -158,7 +181,22 @@ export default function QueryPage() {
               <Typography variant="h6" gutterBottom>
                 Prefixes
               </Typography>
-              <Typography variant="h4">{config.prefixes.length}</Typography>
+              <Tooltip
+                title={
+                  <Box>
+                    {config.prefixes.map((prefix, idx) => (
+                      <Box key={idx} sx={{ mb: 0.5 }}>
+                        {prefix}
+                      </Box>
+                    ))}
+                  </Box>
+                }
+                arrow
+              >
+                <Typography variant="h4" sx={{ cursor: 'help' }}>
+                  {config.prefixes.length}
+                </Typography>
+              </Tooltip>
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -174,7 +212,22 @@ export default function QueryPage() {
               <Typography variant="h6" gutterBottom>
                 Attributes
               </Typography>
-              <Typography variant="h4">{config.provider_attributes.length}</Typography>
+              <Tooltip
+                title={
+                  <Box>
+                    {config.provider_attributes.map((attr, idx) => (
+                      <Box key={idx} sx={{ mb: 0.5 }}>
+                        {attr.name}
+                      </Box>
+                    ))}
+                  </Box>
+                }
+                arrow
+              >
+                <Typography variant="h4" sx={{ cursor: 'help' }}>
+                  {config.provider_attributes.length}
+                </Typography>
+              </Tooltip>
             </Paper>
           </Grid>
         </Grid>
@@ -248,10 +301,24 @@ export default function QueryPage() {
                 rows={queries}
                 columns={columns}
                 getRowId={(row) => row.query_id}
+                getRowClassName={(params) => {
+                  if (selectedProviderId && params.row.provider_id === selectedProviderId) {
+                    return 'highlighted-row';
+                  }
+                  return '';
+                }}
                 pageSizeOptions={[10, 25, 50, 100]}
                 initialState={{
                   pagination: {
                     paginationModel: { pageSize: 25 },
+                  },
+                }}
+                sx={{
+                  '& .MuiDataGrid-row.highlighted-row': {
+                    backgroundColor: 'action.selected',
+                    '&:hover': {
+                      backgroundColor: 'action.selected',
+                    },
                   },
                 }}
               />
