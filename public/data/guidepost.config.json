@@ -5,7 +5,7 @@
     "Look up a",
     "Get availability for",
     "I need a",
-    "Search for a"
+    "Search for"
   ],
   "provider_attributes": [
     {
@@ -70,4 +70,3 @@
     }
   ]
 }
-

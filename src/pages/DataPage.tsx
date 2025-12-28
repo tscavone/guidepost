@@ -161,45 +161,47 @@ export default function DataPage({
         </Typography>
       </Box>
 
-      <Paper sx={{ height: 600, width: "calc(100% + 30px)", ml: -15, mr: -15 }}>
-        <DataGrid
-          rows={providers}
-          columns={columns}
-          getRowId={(row) => row.provider_id}
-          rowSelectionModel={selectedProviderId ? [selectedProviderId] : []}
-          onRowSelectionModelChange={(newSelection) => {
-            const selectedId = newSelection[0] as string | undefined;
-            onProviderSelect(selectedId || null);
-          }}
-          initialState={{
-            pagination: {
-              paginationModel: { page: 0, pageSize: 25 },
-            },
-          }}
-          pageSizeOptions={[10, 25, 50, 100]}
-          checkboxSelection
-          sx={{
-            "& .MuiDataGrid-cell": {
-              cursor: "default",
-            },
-            "& .MuiDataGrid-row:hover": {
-              backgroundColor: "action.hover",
-            },
-            "& .MuiDataGrid-row.Mui-selected": {
-              backgroundColor: "action.selected",
-              "&:hover": {
-                backgroundColor: "action.selected",
+      <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <Paper sx={{ height: 600, width: "calc(100% + 30px)" }}>
+          <DataGrid
+            rows={providers}
+            columns={columns}
+            getRowId={(row) => row.provider_id}
+            rowSelectionModel={selectedProviderId ? [selectedProviderId] : []}
+            onRowSelectionModelChange={(newSelection) => {
+              const selectedId = newSelection[0] as string | undefined;
+              onProviderSelect(selectedId || null);
+            }}
+            initialState={{
+              pagination: {
+                paginationModel: { page: 0, pageSize: 25 },
               },
-            },
-            "& .MuiDataGrid-virtualScroller": {
-              overflowX: "hidden !important",
-            },
-            "& .MuiDataGrid-main": {
-              overflowX: "hidden !important",
-            },
-          }}
-        />
-      </Paper>
+            }}
+            pageSizeOptions={[10, 25, 50, 100]}
+            checkboxSelection
+            sx={{
+              "& .MuiDataGrid-cell": {
+                cursor: "default",
+              },
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: "action.hover",
+              },
+              "& .MuiDataGrid-row.Mui-selected": {
+                backgroundColor: "action.selected",
+                "&:hover": {
+                  backgroundColor: "action.selected",
+                },
+              },
+              "& .MuiDataGrid-virtualScroller": {
+                overflowX: "hidden !important",
+              },
+              "& .MuiDataGrid-main": {
+                overflowX: "hidden !important",
+              },
+            }}
+          />
+        </Paper>
+      </Box>
     </Box>
   );
 }

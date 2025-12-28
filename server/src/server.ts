@@ -105,12 +105,26 @@ Instructions:
 Return JSON only, no other text.`;
 
         console.log(`[${agentSpec.agent}] Query: ${query_text}`);
+
+        console.log("Prompt log line executed");
+
+        console.log(`[${agentSpec.agent}] Prompt: ${prompt}`);
         console.log(`[${agentSpec.agent}] Model: ${agentSpec.model}`);
+        console.log(
+          `[${agentSpec.agent}] Expected Provider ID: ${
+            queryProviderId || "null"
+          }`
+        );
 
         const result = await adapter({
           prompt,
           model: agentSpec.model,
         });
+
+        console.log(
+          `[${agentSpec.agent}] Raw Response:`,
+          JSON.stringify(result.raw, null, 2)
+        );
 
         runs.push(
           createAgentRun(
@@ -230,11 +244,22 @@ Return JSON only, no other text.`;
 
           console.log(`[${agentSpec.agent}] Query: ${query.query_text}`);
           console.log(`[${agentSpec.agent}] Model: ${agentSpec.model}`);
+          console.log(`[${agentSpec.agent}] Prompt: ${prompt}`);
+          console.log(
+            `[${agentSpec.agent}] Expected Provider ID: ${
+              query.provider_id || "null"
+            }`
+          );
 
           const result = await adapter({
             prompt,
             model: agentSpec.model,
           });
+
+          console.log(
+            `[${agentSpec.agent}] Raw Response:`,
+            JSON.stringify(result.raw, null, 2)
+          );
 
           allRuns.push(
             createAgentRun(

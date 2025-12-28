@@ -101,7 +101,12 @@ export default function QueryPage({ selectedProviderId }: QueryPageProps) {
   };
 
   const columns: GridColDef<GeneratedQuery>[] = [
-    { field: 'query_id', headerName: 'Query ID', width: 120 },
+    {
+      field: 'provider_id',
+      headerName: 'Target Provider',
+      width: 150,
+      renderCell: (params) => getProviderName(params.row.provider_id),
+    },
     {
       field: 'query_text',
       headerName: 'Query Text',
@@ -121,12 +126,6 @@ export default function QueryPage({ selectedProviderId }: QueryPageProps) {
           </Box>
         </Tooltip>
       ),
-    },
-    {
-      field: 'provider_id',
-      headerName: 'Name',
-      width: 150,
-      renderCell: (params) => getProviderName(params.row.provider_id),
     },
     { field: 'city', headerName: 'City', width: 120 },
     { field: 'state', headerName: 'State', width: 80 },
@@ -296,7 +295,7 @@ export default function QueryPage({ selectedProviderId }: QueryPageProps) {
           {queries.length === 0 ? (
             <Alert severity="info">No queries generated yet. Use the form above to generate queries.</Alert>
           ) : (
-            <Box sx={{ height: 600, width: '100%' }}>
+            <Box sx={{ height: 630, width: '100%' }}>
               <DataGrid
                 rows={queries}
                 columns={columns}
