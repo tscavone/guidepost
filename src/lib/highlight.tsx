@@ -9,9 +9,16 @@ export function flattenHighlightTerms(answer: AgentAnswer | null): string[] {
 
   const terms: string[] = [];
 
-  // Add provider_id if present
-  if (answer.provider_id) {
-    terms.push(answer.provider_id);
+  // Add provider_name if present
+  if (answer.provider_name) {
+    terms.push(answer.provider_name);
+    // Also add individual name parts for better matching
+    const nameParts = answer.provider_name.split(/\s+/);
+    nameParts.forEach((part) => {
+      if (part.length > 2) {
+        terms.push(part);
+      }
+    });
   }
 
   // Add extracted attributes
@@ -54,10 +61,7 @@ export function flattenHighlightTerms(answer: AgentAnswer | null): string[] {
 /**
  * Highlight matching terms in text, returning React nodes
  */
-export function highlightText(
-  text: string,
-  terms: string[]
-): React.ReactNode {
+export function highlightText(text: string, terms: string[]): React.ReactNode {
   if (!text || terms.length === 0) {
     return text;
   }
@@ -106,4 +110,3 @@ export function highlightText(
 
   return parts.length > 0 ? <>{parts}</> : text;
 }
-

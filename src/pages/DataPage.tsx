@@ -50,7 +50,15 @@ export default function DataPage({
       width: 200,
       valueGetter: (params) => {
         if (!params.row) return "";
-        return `${params.row.first} ${params.row.last}`;
+        // Handle both provider_name (from JSONL) and first/last (from type)
+        const row = params.row as any;
+        if (row.provider_name) {
+          return row.provider_name;
+        }
+        if (row.first || row.last) {
+          return `${row.first || ""} ${row.last || ""}`.trim();
+        }
+        return "";
       },
     },
     {

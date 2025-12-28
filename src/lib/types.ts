@@ -47,12 +47,27 @@ export interface GeneratedQuery {
 }
 
 export interface AgentAnswer {
-  provider_id: string | null;
+  provider_name: string | null;
   found: boolean;
   extracted_attributes: Record<string, any>;
   competitor_mentions: string[];
   confidence: number | null;
   notes: string | null;
+}
+
+export interface SearchResult {
+  provider: {
+    provider_name: string;
+    specialties?: string[];
+    location?: { city: string; state: string };
+    languages?: string[];
+    insurance_accepted?: string[];
+    accepting_new_patients?: boolean;
+    telehealth_available?: boolean;
+    source?: string;
+  };
+  score: number;
+  reasons: string[];
 }
 
 export interface AgentRun {
@@ -69,5 +84,6 @@ export interface AgentRun {
     query_text: string;
     candidate_provider_ids: string[];
   };
+  search_results?: SearchResult[];
   created_at: string;
 }

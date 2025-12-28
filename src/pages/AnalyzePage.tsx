@@ -239,7 +239,14 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
     if (!providerId) return "-";
     const provider = providers.find((p) => p.provider_id === providerId);
     if (provider) {
-      return `${provider.first} ${provider.last}`;
+      // Handle both provider_name (from JSONL) and first/last (from type)
+      const providerAny = provider as any;
+      if (providerAny.provider_name) {
+        return providerAny.provider_name;
+      }
+      if (providerAny.first || providerAny.last) {
+        return `${providerAny.first || ""} ${providerAny.last || ""}`.trim();
+      }
     }
     return providerId;
   };
@@ -294,7 +301,15 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
       renderCell: (params) => {
         const answer = params.row.agent_answer as AgentAnswer | null;
         if (!answer || !answer.extracted_attributes) return "-";
-        const keys = Object.keys(answer.extracted_attributes);
+        
+        // Filter out null values
+        const keys = Object.keys(answer.extracted_attributes).filter(
+          (key) => {
+            const value = answer.extracted_attributes[key];
+            return value !== null && value !== undefined;
+          }
+        );
+        
         if (keys.length === 0) return "-";
 
         const formatAttributeValue = (value: any): string => {

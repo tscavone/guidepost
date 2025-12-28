@@ -95,7 +95,14 @@ export default function QueryPage({ selectedProviderId }: QueryPageProps) {
   const getProviderName = (providerId: string): string => {
     const provider = providers.find((p) => p.provider_id === providerId);
     if (provider) {
-      return `${provider.first} ${provider.last}`;
+      // Handle both provider_name (from JSONL) and first/last (from type)
+      const providerAny = provider as any;
+      if (providerAny.provider_name) {
+        return providerAny.provider_name;
+      }
+      if (providerAny.first || providerAny.last) {
+        return `${providerAny.first || ""} ${providerAny.last || ""}`.trim();
+      }
     }
     return providerId;
   };
