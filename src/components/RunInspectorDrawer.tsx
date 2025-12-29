@@ -34,7 +34,6 @@ export default function RunInspectorDrawer({
   run,
   query,
 }: RunInspectorDrawerProps) {
-  const [showRequestContext, setShowRequestContext] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(true);
 
   if (!run) return null;
@@ -255,41 +254,6 @@ export default function RunInspectorDrawer({
           </Paper>
         )}
 
-        {/* Request Context (if available) */}
-        {(run as any).request_context && (
-          <Paper sx={{ p: 2 }}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                cursor: "pointer",
-              }}
-              onClick={() => setShowRequestContext(!showRequestContext)}
-            >
-              <Typography variant="subtitle2" color="text.secondary">
-                Request Context
-              </Typography>
-              {showRequestContext ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </Box>
-            <Collapse in={showRequestContext}>
-              <Box
-                sx={{
-                  mt: 2,
-                  p: 2,
-                  bgcolor: "grey.100",
-                  borderRadius: 1,
-                  fontFamily: "monospace",
-                  fontSize: "0.875rem",
-                }}
-              >
-                <pre style={{ margin: 0, whiteSpace: "pre-wrap" }}>
-                  {JSON.stringify((run as any).request_context, null, 2)}
-                </pre>
-              </Box>
-            </Collapse>
-          </Paper>
-        )}
       </Box>
     </Drawer>
   );

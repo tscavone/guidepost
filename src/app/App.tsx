@@ -88,7 +88,7 @@ function App() {
                   mt: 0.5,
                 }}
               >
-                Public provider data only. No PHI.
+                SIMULATED provider data only. No PHI.
               </Typography>
             </Box>
           </Box>

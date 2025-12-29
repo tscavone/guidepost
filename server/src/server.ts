@@ -81,20 +81,95 @@ function formatSearchResults(results: SearchResult[]): string {
  * @param queryText - The search query text
  * @param expectedProviderName - The expected provider name to look for (optional)
  * @param searchResults - The simulated web search results
+ * @param queryFields - Optional query fields for PLAN section (specialty, location, insurance, language)
  * @returns The formatted prompt string
  */
 function generatePrompt(
   queryText: string,
   expectedProviderName: string | null,
-  searchResults: SearchResult[]
+  searchResults: SearchResult[],
+  queryFields?: {
+    specialty?: string;
+    location?: { city?: string; state?: string };
+    insurance?: string;
+    language?: string;
+    accepting_new_patients?: boolean;
+    telehealth_available?: boolean;
+  }
 ): string {
   const resultsSection = formatSearchResults(searchResults);
 
+  // Build PLAN section from query fields
+  const planItems: string[] = [];
+  if (queryFields?.specialty) {
+    planItems.push(`- Specialty: ${queryFields.specialty}`);
+  }
+  if (queryFields?.location?.city || queryFields?.location?.state) {
+    const loc = queryFields.location;
+    planItems.push(
+      `- Location: ${loc.city || ""}${loc.city && loc.state ? ", " : ""}${
+        loc.state || ""
+      }`
+    );
+  }
+  if (queryFields?.insurance) {
+    planItems.push(`- Insurance: ${queryFields.insurance}`);
+  }
+  if (queryFields?.language) {
+    planItems.push(`- Language: ${queryFields.language}`);
+  }
+  if (queryFields?.accepting_new_patients === true) {
+    planItems.push(`- Accepting new patients: Yes`);
+  }
+  if (queryFields?.telehealth_available === true) {
+    planItems.push(`- Telehealth available: Yes`);
+  }
+  const planSection =
+    planItems.length > 0
+      ? planItems.join("\n")
+      : "- Analyze query requirements";
+
+  // Build TOOL_CALL section
+  const topSources = Array.from(
+    new Set(
+      searchResults
+        .slice(0, 5)
+        .map((r) => r.provider.source)
+        .filter((s): s is string => !!s)
+    )
+  );
+  const toolCallInput: any = {};
+  if (queryFields?.specialty) toolCallInput.specialty = queryFields.specialty;
+  if (queryFields?.location) toolCallInput.location = queryFields.location;
+  if (queryFields?.insurance) toolCallInput.insurance = queryFields.insurance;
+  if (queryFields?.language) toolCallInput.language = queryFields.language;
+  if (queryFields?.accepting_new_patients !== undefined) {
+    toolCallInput.accepting_new_patients = queryFields.accepting_new_patients;
+  }
+  if (queryFields?.telehealth_available !== undefined) {
+    toolCallInput.telehealth_available = queryFields.telehealth_available;
+  }
+
+  const toolCallSection = `tool: simulated_web_search
+input: ${JSON.stringify(toolCallInput, null, 2)}
+output_summary: {
+  returned: ${searchResults.length},
+  top_sources: ${JSON.stringify(topSources)}
+}`;
+
   if (expectedProviderName) {
-    return `Execute this healthcare provider search query and analyze the results:
+    return `You are a healthcare directory assistant. Execute this search query and analyze the results.
 
 Query: ${queryText}
 Expected Provider Name: ${expectedProviderName}
+
+=== PLAN ===
+${planSection}
+- Check if "${expectedProviderName}" appears in search results
+- Extract relevant provider attributes from matching results
+
+=== TOOL_CALL ===
+${toolCallSection}
 
 === SIMULATED_WEB_RESULTS ===
 ${resultsSection}
@@ -104,10 +179,10 @@ Instructions:
 1. Use ONLY the providers listed in SIMULATED_WEB_RESULTS above as your web search findings. Do not invent providers.
 2. Parse the results to determine if the expected provider name "${expectedProviderName}" appears anywhere in the returned provider list.
 3. CRITICAL: Set "found": true ONLY if the expected provider name "${expectedProviderName}" appears in the query results. Use case-insensitive matching and ignore "Dr." prefix and extra spaces. Any other provider names appearing in the results should NOT trigger "found": true.
-4. Set "provider_name" to the name from the results that matches the expected provider name (if found), otherwise null.
+4. Set "provider_name" to the name from SIMULATED_WEB_RESULTS that matches the expected provider name (if found), otherwise null. You MUST cite the exact provider_name from the results.
 5. Extract attributes (location, specialties, languages, accepting_new_patients, telehealth_available, insurance_accepted) from the query results for whichever providers appear, but remember that "found" must only reflect whether the expected provider name appears.
-6. Do not infer or invent any attributes that are not explicitly present in the query results.
-7. In the notes field, describe whether the expected provider was found in the query results and include any relevant context from the search.
+6. In the notes field, cite the provider_name and optionally the source (e.g., "Found provider_name: [name] from [source]").
+7. Do not infer or invent any attributes that are not explicitly present in the query results.
 
 Return ONLY valid JSON matching this exact schema:
 {
@@ -126,9 +201,17 @@ Return ONLY valid JSON matching this exact schema:
 
 Return JSON only, no other text.`;
   } else {
-    return `Execute this healthcare provider search query and analyze the results:
+    return `You are a healthcare directory assistant. Execute this search query and analyze the results.
 
 Query: ${queryText}
+
+=== PLAN ===
+${planSection}
+- Identify providers from search results
+- Extract relevant provider attributes
+
+=== TOOL_CALL ===
+${toolCallSection}
 
 === SIMULATED_WEB_RESULTS ===
 ${resultsSection}
@@ -138,9 +221,10 @@ Instructions:
 1. Use ONLY the providers listed in SIMULATED_WEB_RESULTS above as your web search findings. Do not invent providers.
 2. Parse the results to identify any provider names that appear in the returned data.
 3. Set "found": true if you can identify a specific provider from the results, false otherwise.
-4. Extract attributes (location, specialties, languages, accepting_new_patients, telehealth_available, insurance_accepted) ONLY from data present in the search results.
-5. Do not infer or invent any attributes that are not explicitly present in the results.
-6. Include optional reasoning in the notes field.
+4. Set "provider_name" to a provider name from SIMULATED_WEB_RESULTS. You MUST cite the exact provider_name from the results.
+5. Extract attributes (location, specialties, languages, accepting_new_patients, telehealth_available, insurance_accepted) ONLY from data present in the search results.
+6. In the notes field, cite the provider_name and optionally the source (e.g., "Found provider_name: [name] from [source]").
+7. Do not infer or invent any attributes that are not explicitly present in the results.
 
 Return ONLY valid JSON matching this exact schema:
 {
@@ -238,7 +322,13 @@ app.post("/api/run", async (req, res) => {
         const prompt = generatePrompt(
           query_text,
           expectedProviderName,
-          searchResults
+          searchResults,
+          {
+            specialty: searchInput.specialty,
+            location: searchInput.location,
+            insurance: searchInput.insurance,
+            language: searchInput.language,
+          }
         );
 
         console.log(`[${agentSpec.agent}] Query: ${query_text}`);
@@ -397,7 +487,16 @@ app.post("/api/run-batch", async (req, res) => {
           const prompt = generatePrompt(
             query.query_text,
             expectedProviderName,
-            searchResults
+            searchResults,
+            {
+              specialty: query.specialty,
+              location:
+                query.city || query.state
+                  ? { city: query.city, state: query.state }
+                  : undefined,
+              insurance: query.insurance,
+              language: query.language,
+            }
           );
 
           console.log(`[${agentSpec.agent}] Query: ${query.query_text}`);
