@@ -71,7 +71,7 @@ export default function AnalyzePage({ selectedProviderId }: AnalyzePageProps) {
     xai: "grok-4",
     gemini: "gemini-1.5-pro",
   });
-  const [runCount, setRunCount] = useState<number>(1);
+  const [runCount, setRunCount] = useState<number>(10);
   const [error, setError] = useState<string | null>(null);
   const [selectedRun, setSelectedRun] = useState<AgentRun | null>(null);
   const [selectedQuery, setSelectedQuery] = useState<GeneratedQuery | null>(
