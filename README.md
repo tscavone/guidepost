@@ -5,9 +5,8 @@ A demo web application for healthcare directory use case analysis with real AI a
 ## What This Is (and Is Not)
 
 **Guidepost is:**
-- A systems design and evaluation artifact
+- A demonstration of how I reason about data quality in agent-mediated systems
 - A controlled environment for experimentation
-- A way to reason concretely about data quality in agentic systems
 
 **Guidepost is not:**
 - A production-ready service
