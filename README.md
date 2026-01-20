@@ -2,6 +2,28 @@
 
 A demo web application for healthcare directory use case analysis with real AI agent integrations.
 
+## What This Is (and Is Not)
+
+**Guidepost is:**
+- A systems design and evaluation artifact
+- A controlled environment for experimentation
+- A way to reason concretely about data quality in agentic systems
+
+**Guidepost is not:**
+- A production-ready service
+- A benchmark for any specific vendor or model
+- A claim of universal agent behavior
+
+---
+
+## Demo
+
+A recorded walkthrough is available that explains the motivation, architecture and evaluation flow end to end.
+
+- Demo video:
+  
+---
+
 ## Features
 
 - **Query Generation**: Generate natural language queries from provider data
@@ -137,7 +159,5 @@ The server provides two endpoints:
 
 ## Notes
 
-- All data persistence uses localStorage (browsers cannot write to disk)
+- Currently all data persistence uses localStorage 
 - Agents without API keys will show error messages in the runs table
-- The server handles timeouts (15s) and retries (once on 429/5xx errors)
-- JSON parsing is attempted from agent outputs automatically
