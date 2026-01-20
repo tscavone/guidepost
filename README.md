@@ -16,7 +16,7 @@ A demo web application for healthcare directory use case analysis with real AI a
 ## Features
 
 - **Query Generation**: Generate natural language queries from provider data
-- **Real Agent Integration**: Run queries through OpenAI, xAI, and Gemini agents
+- **Real Agent Integration**: Run queries through OpenAI, xAI, and Gemini agents  **Gemini not supported as of yet**
 - **Analytics**: Visualize agent performance with charts and data grids
 - **Local Storage**: Queries and runs persisted in browser localStorage
 
