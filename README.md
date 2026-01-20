@@ -20,7 +20,7 @@ A demo web application for healthcare directory use case analysis with real AI a
 
 A recorded walkthrough is available that explains the motivation, architecture and evaluation flow end to end.
 
-- Demo video:
+- Demo video: 
   
 ---
 
