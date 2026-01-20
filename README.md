@@ -45,7 +45,9 @@ Edit `server/.env` and add your API keys:
 ```
 OPENAI_API_KEY=your_openai_api_key_here
 XAI_API_KEY=your_xai_api_key_here
-GEMINI_API_KEY=your_gemini_api_key_here
+
+GEMINI_API_KEY=**not currently supported
+
 ```
 
 You can use any subset of these keys. Agents without keys will show errors in the UI.
