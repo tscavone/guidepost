@@ -46,7 +46,7 @@ Edit `server/.env` and add your API keys:
 OPENAI_API_KEY=your_openai_api_key_here
 XAI_API_KEY=your_xai_api_key_here
 
-GEMINI_API_KEY=**not currently supported
+GEMINI_API_KEY=**not currently supported**
 
 ```
 
